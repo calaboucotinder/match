@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calabouço Dating 🧛‍♂️</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://kit.fontawesome.com/your-code.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div id="login-screen" class="screen active">
+            <h1>🧛‍♂️ Calabouço Dating</h1>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="Seu nome">
+                <input type="password" id="password" placeholder="Sua senha">
+                <input type="file" id="photo" accept="image/*">
+                <button onclick="login()">Entrar no Calabouço</button>
+                <p class="register-link">Não tem conta? <a href="#" onclick="showRegister()">Registre-se</a></p>
+            </div>
+        </div>
+
+        <div id="register-screen" class="screen">
+            <h1>🧛‍♂️ Novo Membro</h1>
+            <div class="login-form">
+                <input type="text" id="reg-username" placeholder="Seu nome">
+                <input type="password" id="reg-password" placeholder="Sua senha">
+                <input type="password" id="reg-confirm-password" placeholder="Confirme sua senha">
+                <input type="file" id="reg-photo" accept="image/*">
+                <button onclick="register()">Criar Conta</button>
+                <p class="register-link">Já tem conta? <a href="#" onclick="showLogin()">Faça login</a></p>
+            </div>
+        </div>
+
+        <div id="main-screen" class="screen">
+            <nav class="menu">
+                <button class="menu-item active" onclick="showSection('swipe')">
+                    <i class="fas fa-fire"></i>
+                    <span>Swipe</span>
+                </button>
+                <button class="menu-item" onclick="showSection('matches')">
+                    <i class="fas fa-heart"></i>
+                    <span>Matches</span>
+                </button>
+                <button class="menu-item" onclick="showSection('chats')">
+                    <i class="fas fa-comments"></i>
+                    <span>Chats</span>
+                </button>
+                <button class="menu-item" onclick="showSection('profile')">
+                    <i class="fas fa-user"></i>
+                    <span>Perfil</span>
+                </button>
+            </nav>
+
+            <div id="swipe-section" class="section active">
+                <div class="card-container">
+                    <div class="card">
+                        <div class="photo-gallery">
+                            <div class="photo-slider">
+                                <div class="card-photo"></div>
+                            </div>
+                            <div class="photo-counter">1/5</div>
+                            <div class="photo-preview"></div>
+                            <div class="photo-dots"></div>
+                            <button class="prev-photo" onclick="prevPhoto()"><i class="fas fa-chevron-left"></i></button>
+                            <button class="next-photo" onclick="nextPhoto()"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="card-info">
+                            <h2 class="name"></h2>
+                            <p class="age"></p>
+                            <p class="pronoun"></p>
+                            <p class="orientation"></p>
+                            <div class="interests-tags"></div>
+                            <p class="bio"></p>
+                            <p class="additional-info"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="dislike">❌</button>
+                    <button class="like">❤️</button>
+                </div>
+            </div>
+
+            <div id="matches-section" class="section">
+                <h2>Seus Matches</h2>
+                <div class="matches-grid"></div>
+            </div>
+
+            <div id="chats-section" class="section">
+                <h2>Conversas</h2>
+                <div class="chats-list"></div>
+                <div class="chat-container">
+                    <div class="chat-messages"></div>
+                    <div class="typing-indicator" style="display: none;">
+                        <span>Digitando</span>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                    <div class="media-upload">
+                        <input type="file" id="media-input" accept="image/*,video/*" multiple style="display: none;">
+                        <button onclick="document.getElementById('media-input').click()">
+                            <i class="fas fa-image"></i> Adicionar mídia
+                        </button>
+                        <div class="media-preview-container"></div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" placeholder="Digite sua mensagem...">
+                        <button onclick="sendMessage()">Enviar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="profile-section" class="section">
+                <div class="profile-container">
+                    <div class="profile-photo"></div>
+                    <h2 class="profile-name"></h2>
+                    <div class="profile-info">
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Idade:</div>
+                            <div class="profile-info-value" id="profile-age"></div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Identidade de Gênero:</div>
+                            <div class="profile-info-value" id="profile-gender"></div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Pronome:</div>
+                            <div class="profile-info-value" id="profile-pronoun"></div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Orientação Sexual:</div>
+                            <div class="profile-info-value" id="profile-orientation"></div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Status de Relacionamento:</div>
+                            <div class="profile-info-value" id="profile-relationship"></div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Bio:</div>
+                            <div class="profile-info-value" id="profile-bio"></div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Informações Adicionais:</div>
+                            <div class="profile-info-value" id="profile-additional"></div>
+                        </div>
+                        <div class="interests-tags"></div>
+                    </div>
+                    
+                    <div class="photo-album">
+                        <h3>Álbum de Fotos</h3>
+                        <div class="album-controls">
+                            <button class="add-photo-btn" onclick="showAddPhotoModal()"><i class="fas fa-plus"></i> Adicionar Foto</button>
+                            <div class="album-filter">
+                                <button class="filter-btn active" data-filter="public">Públicas</button>
+                                <button class="filter-btn" data-filter="private">Privadas</button>
+                            </div>
+                        </div>
+                        <div class="album-grid" id="public-album"></div>
+                        <div class="album-grid private" id="private-album" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="edit-btn" onclick="editProfile()"><i class="fas fa-edit"></i> Editar Perfil</button>
+                        <button class="manage-requests-btn" onclick="showManageRequestsModal()"><i class="fas fa-user-lock"></i> Solicitações de Acesso</button>
+                        <button onclick="logout()" class="logout-btn">Sair</button>
+                    </div>
+                    <div class="analytics-container">
+                        <div class="analytics-card">
+                            <h3 class="analytics-title">Estatísticas de Matches</h3>
+                            <div class="analytics-value" id="total-matches">0</div>
+                            <div class="analytics-chart" id="matches-chart"></div>
+                        </div>
+                        <div class="profile-insights">
+                            <div class="insight-card">
+                                <div class="insight-icon"><i class="fas fa-eye"></i></div>
+                                <div class="insight-value" id="profile-views">0</div>
+                                <div class="insight-label">Visualizações</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-icon"><i class="fas fa-heart"></i></div>
+                                <div class="insight-value" id="total-likes">0</div>
+                                <div class="insight-label">Curtidas</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-icon"><i class="fas fa-comments"></i></div>
+                                <div class="insight-value" id="total-messages">0</div>
+                                <div class="insight-label">Mensagens</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="edit-profile-screen" class="screen">
+            <div class="edit-profile-header">
+                <button class="back-btn" onclick="backToProfile()">←</button>
+                <h2>Editar Perfil</h2>
+            </div>
+            <div class="edit-profile-form">
+                <div class="profile-photo-upload">
+                    <div class="profile-photo"></div>
+                    <label for="edit-photo" class="upload-btn">Alterar Foto</label>
+                    <input type="file" id="edit-photo" accept="image/*" style="display: none;">
+                </div>
+                <div class="form-group">
+                    <label for="edit-name">Nome</label>
+                    <input type="text" id="edit-name" placeholder="Seu nome">
+                </div>
+                <div class="form-group">
+                    <label for="edit-age">Idade</label>
+                    <input type="number" id="edit-age" placeholder="Sua idade">
+                </div>
+                <div class="form-group">
+                    <label for="edit-gender">Identidade de Gênero</label>
+                    <select id="edit-gender">
+                        <option value="cis">Cisgênero</option>
+                        <option value="trans">Transgênero</option>
+                        <option value="nao-binario">Não-binário</option>
+                        <option value="genderqueer">Genderqueer</option>
+                        <option value="genderfluid">Gênero Fluido</option>
+                        <option value="agenero">Agênero</option>
+                        <option value="bigenero">Bigênero</option>
+                        <option value="outro-genero">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-pronoun">Pronome</label>
+                    <select id="edit-pronoun">
+                        <option value="ele/dele">ele/dele</option>
+                        <option value="ela/dela">ela/dela</option>
+                        <option value="elu/delu">elu/delu</option>
+                        <option value="ile/dile">ile/dile</option>
+                        <option value="ela/dela">ela/dela</option>
+                        <option value="ile/dile">ile/dile</option>
+                        <option value="outro">outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-orientation">Orientação Sexual</label>
+                    <select id="edit-orientation">
+                        <option value="heterossexual">Heterossexual</option>
+                        <option value="homossexual">Homossexual</option>
+                        <option value="bissexual">Bissexual</option>
+                        <option value="pansexual">Pansexual</option>
+                        <option value="assexual">Assexual</option>
+                        <option value="demissexual">Demissexual</option>
+                        <option value="fluid">Fluido</option>
+                        <option value="queer">Queer</option>
+                        <option value="arromantico">Arromântico</option>
+                        <option value="poliamoroso">Poliamoroso</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-relationship">Status de Relacionamento</label>
+                    <select id="edit-relationship">
+                        <option value="solteiro">Solteiro(a)</option>
+                        <option value="solteiro-nao-mono">Solteiro(a) Não Monogâmico(a)</option>
+                        <option value="casado">Casado(a)</option>
+                        <option value="casado-nao-mono">Casado(a) Não Monogâmico(a)</option>
+                        <option value="relacionamento-aberto">Em Relacionamento Aberto</option>
+                        <option value="unicornio">Unicórnio</option>
+                        <option value="poliamoroso">Poliamoroso(a)</option>
+                        <option value="outro-relacionamento">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-bio">Bio</label>
+                    <textarea id="edit-bio" placeholder="Conte um pouco sobre você"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-additional">Informações Adicionais</label>
+                    <textarea id="edit-additional" placeholder="Adicione mais informações sobre você"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-password">Nova Senha (opcional)</label>
+                    <input type="password" id="edit-password" placeholder="Digite sua nova senha">
+                </div>
+                <button class="save-btn" onclick="saveProfile()">Salvar Alterações</button>
+            </div>
+        </div>
+
+        <div id="match-screen" class="screen">
+            <h2>🎉 É MATCH! 🎉</h2>
+            <div class="match-profiles">
+                <div class="profile"></div>
+                <div class="profile"></div>
+            </div>
+            <button onclick="startChat()">Iniciar Conversa</button>
+        </div>
+
+        <div id="chat-screen" class="screen">
+            <div class="chat-header">
+                <button onclick="backToMain()">←</button>
+                <h3>Chat</h3>
+            </div>
+            <div class="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" placeholder="Digite sua mensagem...">
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+
+        <!-- Modal para adicionar foto -->
+        <div id="add-photo-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Adicionar Foto ao Álbum</h3>
+                    <button class="close-modal" onclick="closeAddPhotoModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="photo-upload">Selecione uma foto</label>
+                        <input type="file" id="photo-upload" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="photo-privacy">Privacidade</label>
+                        <select id="photo-privacy">
+                            <option value="public">Pública</option>
+                            <option value="private">Privada</option>
+                        </select>
+                        <small>Você pode ter até 4 fotos públicas e 5 fotos privadas.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="photo-description">Descrição (opcional)</label>
+                        <textarea id="photo-description" placeholder="Descreva sua foto..."></textarea>
+                    </div>
+                    <button class="save-btn" onclick="addPhotoToAlbum()">Adicionar Foto</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal para visualizar foto -->
+        <div id="view-photo-modal" class="modal">
+            <div class="modal-content photo-viewer">
+                <div class="modal-header">
+                    <h3 id="photo-title">Visualizar Foto</h3>
+                    <button class="close-modal" onclick="closeViewPhotoModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="photo-container">
+                        <img id="full-photo" src="" alt="Foto do perfil">
+                        <div class="photo-overlay">
+                            <div class="photo-info">
+                                <p id="photo-description-display"></p>
+                                <p id="photo-date"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal para solicitar acesso a fotos privadas -->
+        <div id="request-access-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Solicitar Acesso</h3>
+                    <button class="close-modal" onclick="closeRequestAccessModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Você está solicitando acesso ao álbum privado. O usuário será notificado e poderá aprovar ou negar sua solicitação.</p>
+                    <div class="form-group">
+                        <label for="request-message">Mensagem (opcional)</label>
+                        <textarea id="request-message" placeholder="Escreva uma mensagem para o usuário..."></textarea>
+                    </div>
+                    <button class="save-btn" onclick="sendAccessRequest()">Enviar Solicitação</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para gerenciar solicitações de acesso -->
+        <div id="manage-requests-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Solicitações de Acesso</h3>
+                    <button class="close-modal" onclick="closeManageRequestsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="requests-list">
+                        <!-- As solicitações serão adicionadas aqui dinamicamente -->
+                    </div>
+                    <div id="no-requests-message" style="display: none;">
+                        <p>Não há solicitações de acesso pendentes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html> 
