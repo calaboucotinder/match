@@ -11,13 +11,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Conexão com o MongoDB
+// Conectar ao MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/calabouco-tinder', {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    retryWrites: true,
+    w: 'majority'
 })
-.then(() => console.log('Conectado ao MongoDB'))
-.catch(err => console.error('Erro ao conectar ao MongoDB:', err));
+.then(() => {
+    console.log('Conectado ao MongoDB');
+})
+.catch((error) => {
+    console.error('Erro ao conectar ao MongoDB:', error.message);
+    // Não encerra o servidor, apenas loga o erro
+});
 
 // Rotas
 app.use('/api/auth', require('./routes/auth'));
@@ -32,6 +39,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rota principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Tratamento de erros
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Algo deu errado!' });
 });
 
 const PORT = process.env.PORT || 3000;
