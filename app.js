@@ -72,17 +72,20 @@ let audioChunks = [];
 let isRecording = false;
 
 // Elementos do chat
-const chatScreen = document.querySelector('.chat-screen');
-const chatHeader = document.querySelector('.chat-header');
-const chatMessages = document.querySelector('.chat-messages');
-const chatInput = document.querySelector('.chat-input input[type="text"]');
-const sendButton = document.querySelector('.chat-input button[type="submit"]');
-const mediaButton = document.querySelector('.chat-input button[type="button"]');
-const mediaInput = document.querySelector('.chat-input input[type="file"]');
-const mediaPreview = document.querySelector('.media-preview');
-const backButton = document.querySelector('.back-button');
-const typingIndicator = document.querySelector('.typing-indicator');
+const chatScreen = document.getElementById('chatScreen');
+const chatHeader = document.getElementById('chatHeader');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendButton = document.getElementById('sendButton');
+const mediaButton = document.getElementById('mediaButton');
+const mediaInput = document.getElementById('mediaInput');
+const mediaPreview = document.getElementById('mediaPreview');
+const backButton = document.getElementById('backButton');
+const typingIndicator = document.getElementById('typingIndicator');
 const audioButton = document.querySelector('.chat-input button[data-action="audio"]');
+
+let currentChat = null;
+let mediaFiles = [];
 
 // Função para carregar imagem com cache
 async function loadImage(url) {
@@ -1515,33 +1518,21 @@ function updateMatchesChart() {
 }
 
 // Função para abrir o chat
-function openChat(user) {
-    currentChatUser = user;
-    showScreen('chat-screen');
-    
-    // Atualiza informações do usuário no cabeçalho
-    const userPhoto = chatHeader.querySelector('.chat-user-photo');
-    const userName = chatHeader.querySelector('.chat-user-name');
-    const userStatus = chatHeader.querySelector('.chat-user-status');
-    
-    userPhoto.src = user.photo;
-    userName.textContent = user.name;
-    userStatus.textContent = 'Online';
-    
-    // Carrega mensagens
+async function openChat(user) {
+    currentChat = user;
+    chatScreen.style.display = 'flex';
+    chatHeader.querySelector('.chat-user-name').textContent = user.name;
+    chatHeader.querySelector('.chat-profile-photo').src = user.photo;
     loadMessages(user.id);
 }
 
 // Função para carregar mensagens
 async function loadMessages(userId) {
     try {
-        const response = await fetch(`/api/messages/chat/${userId}`);
+        const response = await fetch(`/chat/${userId}`);
         const messages = await response.json();
-        
         chatMessages.innerHTML = '';
         messages.forEach(message => addMessageToChat(message));
-        
-        // Rola para a última mensagem
         chatMessages.scrollTop = chatMessages.scrollHeight;
     } catch (error) {
         console.error('Erro ao carregar mensagens:', error);
@@ -1553,137 +1544,92 @@ function addMessageToChat(message) {
     const messageElement = document.createElement('div');
     messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 'received'}`;
     
-    const content = document.createElement('div');
-    content.className = 'message-content';
-    content.textContent = message.content;
+    let content = `<div class="message-content">${message.content}</div>`;
     
-    const time = document.createElement('div');
-    time.className = 'message-time';
-    time.textContent = new Date(message.createdAt).toLocaleTimeString();
-    
-    messageElement.appendChild(content);
-    messageElement.appendChild(time);
-    
-    // Adiciona mídia se existir
     if (message.media) {
-        const media = document.createElement('div');
-        media.className = 'message-media';
-        
-        if (message.mediaType.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = message.media;
-            media.appendChild(img);
-        } else if (message.mediaType.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.src = message.media;
-            video.controls = true;
-            media.appendChild(video);
+        if (message.media.type.startsWith('image/')) {
+            content += `<div class="message-media"><img src="${message.media.url}" alt="Imagem"></div>`;
+        } else if (message.media.type.startsWith('video/')) {
+            content += `<div class="message-media"><video src="${message.media.url}" controls></video></div>`;
         }
-        
-        messageElement.appendChild(media);
     }
     
-    // Adiciona áudio se existir
-    if (message.audio) {
-        const audio = document.createElement('div');
-        audio.className = 'audio-message';
-        
-        const playButton = document.createElement('button');
-        playButton.className = 'play-button';
-        playButton.innerHTML = '<i class="fas fa-play"></i>';
-        
-        const audioElement = document.createElement('audio');
-        audioElement.src = message.audio;
-        
-        const duration = document.createElement('span');
-        duration.className = 'audio-duration';
-        duration.textContent = formatDuration(message.audioDuration);
-        
-        audio.appendChild(playButton);
-        audio.appendChild(audioElement);
-        audio.appendChild(duration);
-        
-        messageElement.appendChild(audio);
+    content += `<div class="message-time">${new Date(message.createdAt).toLocaleTimeString()}</div>`;
+    
+    if (message.reactions && message.reactions.length > 0) {
+        content += `<div class="message-reactions">${message.reactions.join(' ')}</div>`;
     }
     
+    messageElement.innerHTML = content;
     chatMessages.appendChild(messageElement);
 }
 
 // Função para enviar mensagem
 async function sendMessage() {
-    const input = chatInput;
-    const content = input.value.trim();
-    
-    if (!content && !mediaInput.files.length && !audioChunks.length) return;
+    if (!chatInput.value.trim() && mediaFiles.length === 0) return;
     
     const formData = new FormData();
-    formData.append('content', content);
-    formData.append('receiverId', currentChatUser.id);
-    
-    // Adiciona arquivos de mídia
-    if (mediaInput.files.length) {
-        formData.append('media', mediaInput.files[0]);
-    }
-    
-    // Adiciona áudio
-    if (audioChunks.length) {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        formData.append('audio', audioBlob);
-    }
+    formData.append('content', chatInput.value);
+    mediaFiles.forEach(file => formData.append('media', file));
     
     try {
-        const response = await fetch('/api/messages/send', {
+        const response = await fetch(`/send/${currentChat.id}`, {
             method: 'POST',
             body: formData
         });
         
-        const message = await response.json();
-        addMessageToChat(message);
-        
-        // Limpa inputs
-        input.value = '';
-        mediaInput.value = '';
-        mediaPreview.innerHTML = '';
-        audioChunks = [];
-        
-        // Rola para a última mensagem
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        if (response.ok) {
+            const message = await response.json();
+            addMessageToChat(message);
+            chatInput.value = '';
+            mediaFiles = [];
+            mediaPreview.innerHTML = '';
+        }
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
     }
 }
 
-// Event Listeners para o chat
+// Event Listeners
 sendButton.addEventListener('click', sendMessage);
 chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
 
-mediaButton.addEventListener('click', () => mediaInput.click());
-mediaInput.addEventListener('change', () => {
-    const file = mediaInput.files[0];
-    if (!file) return;
+mediaButton.addEventListener('click', () => {
+    mediaInput.click();
+});
+
+mediaInput.addEventListener('change', (e) => {
+    mediaFiles = Array.from(e.target.files);
+    mediaPreview.innerHTML = '';
     
-    const preview = document.createElement('div');
-    preview.className = 'media-preview-item';
+    mediaFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.createElement(file.type.startsWith('image/') ? 'img' : 'video');
+            preview.src = e.target.result;
+            if (preview.tagName === 'VIDEO') preview.controls = true;
+            mediaPreview.appendChild(preview);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+backButton.addEventListener('click', () => {
+    chatScreen.style.display = 'none';
+    currentChat = null;
+});
+
+// Simulação de digitação
+let typingTimeout;
+chatInput.addEventListener('input', () => {
+    clearTimeout(typingTimeout);
+    typingIndicator.style.display = 'flex';
     
-    const removeButton = document.createElement('button');
-    removeButton.className = 'remove-media';
-    removeButton.innerHTML = '×';
-    removeButton.onclick = () => preview.remove();
-    
-    if (file.type.startsWith('image/')) {
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
-        preview.appendChild(img);
-    } else if (file.type.startsWith('video/')) {
-        const video = document.createElement('video');
-        video.src = URL.createObjectURL(file);
-        preview.appendChild(video);
-    }
-    
-    preview.appendChild(removeButton);
-    mediaPreview.appendChild(preview);
+    typingTimeout = setTimeout(() => {
+        typingIndicator.style.display = 'none';
+    }, 1000);
 });
 
 // Configuração do gravador de áudio
