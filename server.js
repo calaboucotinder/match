@@ -32,12 +32,14 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/photos', require('./routes/photos'));
 app.use('/api/matches', require('./routes/matches'));
 
-// Servir arquivos estáticos da raiz
-app.use(express.static(__dirname));
+// Servir arquivos estáticos
+app.use(express.static(path.join(__dirname)));
 
 // Rota principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    const indexPath = path.join(__dirname, 'index.html');
+    console.log('Tentando servir:', indexPath);
+    res.sendFile(indexPath);
 });
 
 // Tratamento de erros
@@ -49,4 +51,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+    console.log('Diretório atual:', __dirname);
+    console.log('Arquivos disponíveis:', require('fs').readdirSync(__dirname));
 }); 
