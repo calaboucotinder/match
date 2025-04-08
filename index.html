@@ -40,8 +40,11 @@
             <div class="login-form">
                 <input type="email" id="email" placeholder="Seu email">
                 <input type="password" id="password" placeholder="Sua senha">
-                <button onclick="login()">Entrar no Calabouço</button>
-                <p class="register-link">Não tem conta? <a href="#" onclick="showRegister()">Registre-se</a></p>
+                <button onclick="login()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar no Calabouço
+                </button>
+                <p class="register-link">Não tem conta? <a href="javascript:void(0)" onclick="showRegister()">Registre-se</a></p>
             </div>
         </div>
 
@@ -120,8 +123,11 @@
                     <input type="file" id="reg-photo" accept="image/*">
                 </div>
                 
-                <button onclick="register()">Criar Conta</button>
-                <p class="login-link">Já tem conta? <a href="#" onclick="showLogin()">Faça login</a></p>
+                <button onclick="register()">
+                    <i class="fas fa-user-plus"></i>
+                    Criar Conta
+                </button>
+                <p class="login-link">Já tem conta? <a href="javascript:void(0)" onclick="showLogin()">Faça login</a></p>
             </div>
         </div>
 

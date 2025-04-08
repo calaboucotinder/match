@@ -163,52 +163,77 @@ function showSection(sectionName) {
 }
 
 function showRegister() {
-    showScreen('register-screen');
+    const loginScreen = document.getElementById('login-screen');
+    const registerScreen = document.getElementById('register-screen');
+    
+    loginScreen.classList.remove('active');
+    registerScreen.classList.add('active');
+    
+    // Limpa os campos do formulário de login
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
 }
 
 function showLogin() {
-    showScreen('login-screen');
+    const loginScreen = document.getElementById('login-screen');
+    const registerScreen = document.getElementById('register-screen');
+    
+    registerScreen.classList.remove('active');
+    loginScreen.classList.add('active');
+    
+    // Limpa os campos do formulário de registro
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-age').value = '';
+    document.getElementById('reg-password').value = '';
+    document.getElementById('reg-confirm-password').value = '';
+    document.getElementById('reg-photo').value = '';
 }
 
 // Função de registro
 async function register() {
-    const name = document.getElementById('reg-name').value;
-    const email = document.getElementById('reg-email').value;
-    const age = document.getElementById('reg-age').value;
-    const gender = document.getElementById('reg-gender').value;
-    const pronoun = document.getElementById('reg-pronoun').value;
-    const orientation = document.getElementById('reg-orientation').value;
-    const bio = document.getElementById('reg-bio').value;
-    const password = document.getElementById('reg-password').value;
-    const confirmPassword = document.getElementById('reg-confirm-password').value;
-    const photoInput = document.getElementById('reg-photo');
-
-    // Validações
-    if (!name || !email || !age || !password || !confirmPassword) {
-        alert('Por favor, preencha todos os campos obrigatórios');
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        alert('As senhas não coincidem');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('age', age);
-    formData.append('gender', gender);
-    formData.append('pronoun', pronoun);
-    formData.append('orientation', orientation);
-    formData.append('bio', bio);
-    formData.append('password', password);
+    const registerButton = document.querySelector('.register-form button');
+    const originalText = registerButton.innerHTML;
     
-    if (photoInput.files.length > 0) {
-        formData.append('photo', photoInput.files[0]);
-    }
-
     try {
+        // Desabilita o botão e mostra loading
+        registerButton.disabled = true;
+        registerButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
+        
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const age = document.getElementById('reg-age').value;
+        const gender = document.getElementById('reg-gender').value;
+        const pronoun = document.getElementById('reg-pronoun').value;
+        const orientation = document.getElementById('reg-orientation').value;
+        const bio = document.getElementById('reg-bio').value;
+        const password = document.getElementById('reg-password').value;
+        const confirmPassword = document.getElementById('reg-confirm-password').value;
+        const photoInput = document.getElementById('reg-photo');
+
+        // Validações
+        if (!name || !email || !age || !password || !confirmPassword) {
+            throw new Error('Por favor, preencha todos os campos obrigatórios');
+        }
+
+        if (password !== confirmPassword) {
+            throw new Error('As senhas não coincidem');
+        }
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('age', age);
+        formData.append('gender', gender);
+        formData.append('pronoun', pronoun);
+        formData.append('orientation', orientation);
+        formData.append('bio', bio);
+        formData.append('password', password);
+        
+        if (photoInput.files.length > 0) {
+            formData.append('photo', photoInput.files[0]);
+        }
+
         const response = await fetch('/api/auth/register', {
             method: 'POST',
             body: formData
@@ -217,29 +242,51 @@ async function register() {
         if (response.ok) {
             const data = await response.json();
             localStorage.setItem('token', data.token);
-            showScreen('main-screen');
-            loadUserProfile();
+            
+            // Mostra mensagem de sucesso
+            registerButton.innerHTML = '<i class="fas fa-check"></i> Conta criada!';
+            registerButton.style.backgroundColor = 'var(--success-color)';
+            
+            // Redireciona após 1 segundo
+            setTimeout(() => {
+                showScreen('main-screen');
+                loadUserProfile();
+            }, 1000);
         } else {
             const error = await response.json();
-            alert(error.message || 'Erro ao criar conta');
+            throw new Error(error.message || 'Erro ao criar conta');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao criar conta');
+        registerButton.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + error.message;
+        registerButton.style.backgroundColor = 'var(--error-color)';
+        
+        // Restaura o botão após 3 segundos
+        setTimeout(() => {
+            registerButton.disabled = false;
+            registerButton.innerHTML = originalText;
+            registerButton.style.backgroundColor = '';
+        }, 3000);
     }
 }
 
 // Função de login
 async function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    if (!email || !password) {
-        alert('Por favor, preencha todos os campos');
-        return;
-    }
-
+    const loginButton = document.querySelector('.login-form button');
+    const originalText = loginButton.innerHTML;
+    
     try {
+        // Desabilita o botão e mostra loading
+        loginButton.disabled = true;
+        loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+            throw new Error('Por favor, preencha todos os campos');
+        }
+
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
@@ -251,15 +298,31 @@ async function login() {
         if (response.ok) {
             const data = await response.json();
             localStorage.setItem('token', data.token);
-            showScreen('main-screen');
-            loadUserProfile();
+            
+            // Mostra mensagem de sucesso
+            loginButton.innerHTML = '<i class="fas fa-check"></i> Entrando...';
+            loginButton.style.backgroundColor = 'var(--success-color)';
+            
+            // Redireciona após 1 segundo
+            setTimeout(() => {
+                showScreen('main-screen');
+                loadUserProfile();
+            }, 1000);
         } else {
             const error = await response.json();
-            alert(error.message || 'Email ou senha incorretos');
+            throw new Error(error.message || 'Email ou senha incorretos');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao fazer login');
+        loginButton.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + error.message;
+        loginButton.style.backgroundColor = 'var(--error-color)';
+        
+        // Restaura o botão após 3 segundos
+        setTimeout(() => {
+            loginButton.disabled = false;
+            loginButton.innerHTML = originalText;
+            loginButton.style.backgroundColor = '';
+        }, 3000);
     }
 }
 
