@@ -10,6 +10,8 @@
     --hover-color: #404040;
     --success-color: #4CAF50;
     --error-color: #f44336;
+    --like-color: #ff4d4d;
+    --dislike-color: #4a4a4a;
 }
 
 * {
@@ -149,68 +151,128 @@ button:hover {
 
 .card {
     background-color: var(--card-color);
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 20px auto;
+    max-width: 400px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 .card-photo {
     width: 100%;
-    height: 400px;
+    height: 450px;
     background-size: cover;
     background-position: center;
+    position: relative;
 }
 
 .card-info {
-    padding: 20px;
+    padding: 25px;
+}
+
+.card-info h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.card-info p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
 }
 
 .buttons {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    gap: 30px;
+    margin-top: 30px;
+    padding: 0 20px;
 }
 
 .buttons button {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-    font-size: 1.5rem;
+    font-size: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.buttons .like {
+    background: linear-gradient(45deg, var(--like-color), #ff6b6b);
+    border: none;
+}
+
+.buttons .dislike {
+    background: linear-gradient(45deg, var(--dislike-color), #666666);
+    border: none;
+}
+
+.buttons button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.buttons button:active {
+    transform: scale(0.95);
 }
 
 .matches-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 20px;
     padding: 20px;
+    margin-top: 20px;
 }
 
 .match-card {
     background-color: var(--card-color);
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .match-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .match-photo {
     width: 100%;
-    height: 150px;
+    height: 200px;
     background-size: cover;
     background-position: center;
+    position: relative;
 }
 
 .match-info {
-    padding: 10px;
+    padding: 15px;
     text-align: center;
+}
+
+.match-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.match-info p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
 }
 
 .chats-list {
@@ -477,16 +539,35 @@ button:hover {
         font-size: 0.7rem;
     }
 
+    .card {
+        margin: 15px auto;
+        border-radius: 16px;
+    }
+
     .card-photo {
-        height: 300px;
+        height: 400px;
+    }
+
+    .card-info {
+        padding: 20px;
+    }
+
+    .card-info h2 {
+        font-size: 1.6rem;
+    }
+
+    .card-info p {
+        font-size: 1rem;
     }
 
     .matches-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 15px;
     }
 
     .match-photo {
-        height: 120px;
+        height: 180px;
     }
     
     .profile-info-item {
@@ -499,6 +580,66 @@ button:hover {
     
     .profile-info-label {
         margin-bottom: 5px;
+    }
+
+    .buttons {
+        gap: 20px;
+    }
+
+    .buttons button {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .matches-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .match-photo {
+        height: 160px;
+    }
+
+    .match-info {
+        padding: 10px;
+    }
+
+    .match-info h3 {
+        font-size: 1rem;
+    }
+
+    .match-info p {
+        font-size: 0.8rem;
+    }
+
+    .card {
+        margin: 10px auto;
+        border-radius: 12px;
+    }
+
+    .card-photo {
+        height: 350px;
+    }
+
+    .card-info {
+        padding: 15px;
+    }
+
+    .card-info h2 {
+        font-size: 1.4rem;
+    }
+
+    .card-info p {
+        font-size: 0.9rem;
+    }
+
+    .interest-tag {
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
 }
 
@@ -1125,22 +1266,22 @@ button:hover {
 .interests-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 10px 0;
+    gap: 10px;
+    margin: 15px 0;
 }
 
 .interest-tag {
-    padding: 5px 10px;
-    background-color: var(--accent-color);
-    color: white;
-    border-radius: 15px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: 20px;
     font-size: 0.9rem;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .interest-tag:hover {
-    transform: scale(1.05);
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
 }
 
 /* Analytics e Insights */
