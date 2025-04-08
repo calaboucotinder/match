@@ -52,6 +52,36 @@ let currentProfilePhotos = [];
 // Cache de imagens
 const imageCache = new Map();
 
+// Variáveis globais para o chat
+let currentChatUser = null;
+let typingTimeout = null;
+let mediaFile = null;
+
+// Configurações de paginação
+let currentPage = 1;
+const messagesPerPage = 20;
+let isLoadingMore = false;
+let hasMoreMessages = true;
+
+// Configuração de notificações
+let pushSubscription = null;
+
+// Configuração de gravação de áudio
+let mediaRecorder = null;
+let audioChunks = [];
+
+// Elementos do chat
+const chatScreen = document.querySelector('.chat-screen');
+const chatHeader = document.querySelector('.chat-header');
+const chatMessages = document.querySelector('.chat-messages');
+const chatInput = document.querySelector('.chat-message-input');
+const sendButton = document.querySelector('.send-button');
+const mediaButton = document.querySelector('.media-button');
+const mediaInput = document.querySelector('.media-input');
+const mediaPreview = document.querySelector('.media-preview');
+const backButton = document.querySelector('.back-button');
+const typingIndicator = document.querySelector('.typing-indicator');
+
 // Função para carregar imagem com cache
 async function loadImage(url) {
     if (imageCache.has(url)) {
@@ -130,7 +160,6 @@ function showSection(sectionName) {
     }
 }
 
-// Login e Registro
 function showRegister() {
     showScreen('register-screen');
 }
@@ -139,104 +168,117 @@ function showLogin() {
     showScreen('login-screen');
 }
 
-function register() {
-    const username = document.getElementById('reg-username').value;
+// Função de registro
+async function register() {
+    const name = document.getElementById('reg-name').value;
+    const age = document.getElementById('reg-age').value;
+    const gender = document.getElementById('reg-gender').value;
+    const pronoun = document.getElementById('reg-pronoun').value;
+    const orientation = document.getElementById('reg-orientation').value;
+    const bio = document.getElementById('reg-bio').value;
     const password = document.getElementById('reg-password').value;
     const confirmPassword = document.getElementById('reg-confirm-password').value;
     const photoInput = document.getElementById('reg-photo');
 
-    if (!username || !password || !confirmPassword) {
-        alert('Por favor, preencha todos os campos!');
+    // Validações
+    if (!name || !age || !password || !confirmPassword) {
+        alert('Por favor, preencha todos os campos obrigatórios');
         return;
     }
 
     if (password !== confirmPassword) {
-        alert('As senhas não coincidem!');
+        alert('As senhas não coincidem');
         return;
     }
 
-    if (photoInput.files && photoInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const newUser = {
-                id: Date.now(),
-                name: username,
-                password: password,
-                photo: e.target.result,
-                age: 18,
-                gender: "cis",
-                pronoun: "ele/dele",
-                orientation: "heterossexual",
-                relationship: "solteiro",
-                bio: "Novo membro do Calabouço",
-                additionalInfo: ""
-            };
-            users.push(newUser);
-            localStorage.setItem('users', JSON.stringify(users));
-            currentUser = newUser;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('age', age);
+    formData.append('gender', gender);
+    formData.append('pronoun', pronoun);
+    formData.append('orientation', orientation);
+    formData.append('bio', bio);
+    formData.append('password', password);
+    
+    if (photoInput.files.length > 0) {
+        formData.append('photo', photoInput.files[0]);
+    }
+
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
             showScreen('main-screen');
-            loadNextProfile();
-            updateProfileSection();
-        };
-        reader.readAsDataURL(photoInput.files[0]);
-    } else {
-        const newUser = {
-            id: Date.now(),
-            name: username,
-            password: password,
-            photo: 'https://i.pravatar.cc/300?img=' + Math.floor(Math.random() * 70),
-            age: 18,
-            gender: "cis",
-            pronoun: "ele/dele",
-            orientation: "heterossexual",
-            relationship: "solteiro",
-            bio: "Novo membro do Calabouço",
-            additionalInfo: ""
-        };
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-        currentUser = newUser;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        showScreen('main-screen');
-        loadNextProfile();
-        updateProfileSection();
+            loadUserProfile();
+        } else {
+            const error = await response.json();
+            alert(error.message || 'Erro ao criar conta');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao criar conta');
     }
 }
 
-function login() {
+// Função de login
+async function login() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const photoInput = document.getElementById('photo');
 
     if (!username || !password) {
-        alert('Por favor, preencha todos os campos!');
+        alert('Por favor, preencha todos os campos');
         return;
     }
 
-    const user = users.find(u => u.name === username && u.password === password);
-    if (!user) {
-        alert('Usuário ou senha incorretos!');
-        return;
-    }
+    try {
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
 
-    if (photoInput.files && photoInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            user.photo = e.target.result;
-            currentUser = user;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
             showScreen('main-screen');
-            loadNextProfile();
-            updateProfileSection();
-        };
-        reader.readAsDataURL(photoInput.files[0]);
-    } else {
-        currentUser = user;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        showScreen('main-screen');
-        loadNextProfile();
-        updateProfileSection();
+            loadUserProfile();
+        } else {
+            const error = await response.json();
+            alert(error.message || 'Usuário ou senha incorretos');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao fazer login');
+    }
+}
+
+// Função para carregar o perfil do usuário
+async function loadUserProfile() {
+    try {
+        const response = await fetch('/users/profile', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (response.ok) {
+            const user = await response.json();
+            updateProfileDisplay(user);
+            loadMatches();
+            loadChats();
+        } else {
+            showLogin();
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        showLogin();
     }
 }
 
@@ -1413,4 +1455,162 @@ function updateMatchesChart() {
             maintainAspectRatio: false
         }
     });
-} 
+}
+
+// Função para abrir o chat com um usuário
+function openChat(user) {
+    currentChatUser = user;
+    chatScreen.style.display = 'flex';
+    document.querySelector('.chat-user-name').textContent = user.name;
+    document.querySelector('.chat-user-photo').style.backgroundImage = `url(${user.photos[0]})`;
+    
+    // Carregar mensagens
+    loadMessages();
+    
+    // Esconder outras telas
+    document.querySelector('.main-screen').style.display = 'none';
+    document.querySelector('.matches-screen').style.display = 'none';
+}
+
+// Função para carregar mensagens
+async function loadMessages() {
+    try {
+        const response = await fetch(`/messages/chat/${currentChatUser._id}`);
+        const messages = await response.json();
+        
+        chatMessages.innerHTML = '';
+        messages.forEach(message => {
+            appendMessage(message);
+        });
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } catch (error) {
+        console.error('Erro ao carregar mensagens:', error);
+    }
+}
+
+// Função para adicionar uma mensagem ao chat
+function appendMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${message.sender === currentUser._id ? 'sent' : 'received'}`;
+    
+    if (message.media && message.media.length > 0) {
+        const media = message.media[0];
+        if (media.type.startsWith('image')) {
+            messageDiv.innerHTML = `<img src="${media.url}" alt="Imagem">`;
+        } else if (media.type.startsWith('video')) {
+            messageDiv.innerHTML = `<video controls src="${media.url}"></video>`;
+        }
+    } else {
+        messageDiv.textContent = message.content;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Função para enviar mensagem
+async function sendMessage() {
+    const content = chatInput.value.trim();
+    if (!content && !mediaFile) return;
+    
+    const formData = new FormData();
+    if (content) formData.append('content', content);
+    if (mediaFile) formData.append('media', mediaFile);
+    
+    try {
+        const response = await fetch(`/messages/send/${currentChatUser._id}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const message = await response.json();
+            appendMessage(message);
+            chatInput.value = '';
+            mediaFile = null;
+            mediaPreview.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
+    }
+}
+
+// Event Listeners
+sendButton.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+mediaButton.addEventListener('click', () => {
+    mediaInput.click();
+});
+
+mediaInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        mediaFile = file;
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            if (file.type.startsWith('image')) {
+                mediaPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            } else if (file.type.startsWith('video')) {
+                mediaPreview.innerHTML = `<video controls src="${e.target.result}"></video>`;
+            }
+        };
+        
+        reader.readAsDataURL(file);
+    }
+});
+
+backButton.addEventListener('click', () => {
+    chatScreen.style.display = 'none';
+    currentChatUser = null;
+    mediaFile = null;
+    mediaPreview.innerHTML = '';
+});
+
+// Registrar o service worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registrado com sucesso:', registration.scope);
+            })
+            .catch(error => {
+                console.log('Falha ao registrar o ServiceWorker:', error);
+            });
+    });
+}
+
+// Gerenciar a instalação do PWA
+let deferredPrompt;
+const installButton = document.createElement('button');
+installButton.textContent = 'Instalar App';
+installButton.style.display = 'none';
+document.body.appendChild(installButton);
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installButton.style.display = 'block';
+});
+
+installButton.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        deferredPrompt = null;
+        installButton.style.display = 'none';
+    }
+});
+
+window.addEventListener('appinstalled', () => {
+    console.log('PWA foi instalado');
+    installButton.style.display = 'none';
+}); 

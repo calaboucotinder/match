@@ -3,12 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calabouço Dating 🧛‍♂️</title>
+    <meta name="theme-color" content="#FF4B4B">
+    <meta name="description" content="Calabouço - Encontre seu par ideal">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/icon-512x512.png">
+    <title>Calabouço</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://kit.fontawesome.com/your-code.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Calabouço">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registrado com sucesso:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar o ServiceWorker:', error);
+                    });
+            });
+        }
+    </script>
 </head>
 <body>
     <div id="app">
@@ -17,7 +40,6 @@
             <div class="login-form">
                 <input type="text" id="username" placeholder="Seu nome">
                 <input type="password" id="password" placeholder="Sua senha">
-                <input type="file" id="photo" accept="image/*">
                 <button onclick="login()">Entrar no Calabouço</button>
                 <p class="register-link">Não tem conta? <a href="#" onclick="showRegister()">Registre-se</a></p>
             </div>
@@ -25,13 +47,76 @@
 
         <div id="register-screen" class="screen">
             <h1>🧛‍♂️ Novo Membro</h1>
-            <div class="login-form">
-                <input type="text" id="reg-username" placeholder="Seu nome">
-                <input type="password" id="reg-password" placeholder="Sua senha">
-                <input type="password" id="reg-confirm-password" placeholder="Confirme sua senha">
-                <input type="file" id="reg-photo" accept="image/*">
+            <div class="register-form">
+                <div class="form-group">
+                    <label for="reg-name">Nome</label>
+                    <input type="text" id="reg-name" placeholder="Seu nome">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-age">Idade</label>
+                    <input type="number" id="reg-age" placeholder="Sua idade">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-gender">Identidade de Gênero</label>
+                    <select id="reg-gender">
+                        <option value="cis">Cisgênero</option>
+                        <option value="trans">Transgênero</option>
+                        <option value="nao-binario">Não-binário</option>
+                        <option value="genderqueer">Genderqueer</option>
+                        <option value="genderfluid">Gênero Fluido</option>
+                        <option value="agenero">Agênero</option>
+                        <option value="bigenero">Bigênero</option>
+                        <option value="outro-genero">Outro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-pronoun">Pronome</label>
+                    <select id="reg-pronoun">
+                        <option value="ele/dele">ele/dele</option>
+                        <option value="ela/dela">ela/dela</option>
+                        <option value="elu/delu">elu/delu</option>
+                        <option value="ile/dile">ile/dile</option>
+                        <option value="outro">outro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-orientation">Orientação Sexual</label>
+                    <select id="reg-orientation">
+                        <option value="heterossexual">Heterossexual</option>
+                        <option value="homossexual">Homossexual</option>
+                        <option value="bissexual">Bissexual</option>
+                        <option value="pansexual">Pansexual</option>
+                        <option value="assexual">Assexual</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-bio">Bio</label>
+                    <textarea id="reg-bio" placeholder="Fale um pouco sobre você..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-password">Senha</label>
+                    <input type="password" id="reg-password" placeholder="Sua senha">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-confirm-password">Confirmar Senha</label>
+                    <input type="password" id="reg-confirm-password" placeholder="Confirme sua senha">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-photo">Foto de Perfil (opcional)</label>
+                    <input type="file" id="reg-photo" accept="image/*">
+                </div>
+                
                 <button onclick="register()">Criar Conta</button>
-                <p class="register-link">Já tem conta? <a href="#" onclick="showLogin()">Faça login</a></p>
+                <p class="login-link">Já tem conta? <a href="#" onclick="showLogin()">Faça login</a></p>
             </div>
         </div>
 
@@ -290,13 +375,41 @@
 
         <div id="chat-screen" class="screen">
             <div class="chat-header">
-                <button onclick="backToMain()">←</button>
-                <h3>Chat</h3>
+                <button class="back-button" onclick="backToMain()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="user-info">
+                    <div class="user-photo" id="chat-user-photo"></div>
+                    <div class="user-name" id="chat-user-name"></div>
+                </div>
             </div>
-            <div class="chat-messages"></div>
-            <div class="chat-input">
-                <input type="text" placeholder="Digite sua mensagem...">
-                <button onclick="sendMessage()">Enviar</button>
+            <div class="chat-messages" id="chat-messages">
+                <!-- As mensagens serão adicionadas aqui dinamicamente -->
+            </div>
+            <div class="typing-indicator" id="typing-indicator" style="display: none;">
+                <span>Digitando</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <div class="media-upload">
+                        <input type="file" id="chat-media-input" accept="image/*,video/*" multiple style="display: none;">
+                        <button onclick="document.getElementById('chat-media-input').click()">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <div class="media-preview-container" id="chat-media-preview"></div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chat-message-input" placeholder="Digite sua mensagem...">
+                        <button onclick="sendChatMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -383,6 +496,35 @@
                         <p>Não há solicitações de acesso pendentes.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div class="chat-screen">
+            <div class="chat-header">
+                <button class="back-button">←</button>
+                <div class="chat-user-info">
+                    <div class="chat-user-photo"></div>
+                    <div class="chat-user-name"></div>
+                </div>
+            </div>
+            
+            <div class="chat-messages">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div class="chat-input-container">
+                    <button class="media-button">📎</button>
+                    <textarea class="chat-message-input" placeholder="Digite sua mensagem..."></textarea>
+                    <button class="send-button">➤</button>
+                </div>
+                <input type="file" class="media-input" accept="image/*,video/*" style="display: none;">
+                <div class="media-preview"></div>
             </div>
         </div>
     </div>
