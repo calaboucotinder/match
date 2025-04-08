@@ -69,18 +69,20 @@ let pushSubscription = null;
 // Configuração de gravação de áudio
 let mediaRecorder = null;
 let audioChunks = [];
+let isRecording = false;
 
 // Elementos do chat
 const chatScreen = document.querySelector('.chat-screen');
 const chatHeader = document.querySelector('.chat-header');
 const chatMessages = document.querySelector('.chat-messages');
-const chatInput = document.querySelector('.chat-message-input');
-const sendButton = document.querySelector('.send-button');
-const mediaButton = document.querySelector('.media-button');
-const mediaInput = document.querySelector('.media-input');
+const chatInput = document.querySelector('.chat-input input[type="text"]');
+const sendButton = document.querySelector('.chat-input button[type="submit"]');
+const mediaButton = document.querySelector('.chat-input button[type="button"]');
+const mediaInput = document.querySelector('.chat-input input[type="file"]');
 const mediaPreview = document.querySelector('.media-preview');
 const backButton = document.querySelector('.back-button');
 const typingIndicator = document.querySelector('.typing-indicator');
+const audioButton = document.querySelector('.chat-input button[data-action="audio"]');
 
 // Função para carregar imagem com cache
 async function loadImage(url) {
@@ -566,47 +568,37 @@ function handleTyping() {
     }, TYPING_TIMEOUT);
 }
 
-function sendMessage() {
-    const input = document.querySelector('.chat-input input');
-    const text = input.value.trim();
-    const mediaInput = document.getElementById('media-input');
-    const mediaFiles = mediaInput.files;
-    
-    if (text || mediaFiles.length > 0) {
-        const message = {
-            sender: currentUser.id,
-            text: text,
-            timestamp: Date.now(),
-            media: [],
-            reactions: []
-        };
-        
-        // Processar mídia
-        if (mediaFiles.length > 0) {
-            Array.from(mediaFiles).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    message.media.push({
-                        type: file.type.startsWith('image/') ? 'image' : 'video',
-                        url: e.target.result
-                    });
-                    updateChatMessages();
-                };
-                reader.readAsDataURL(file);
-            });
+// Função para enviar mensagem com suporte a upload local
+async function sendMessage() {
+    const text = chatInput.value.trim();
+    const files = mediaInput.files;
+
+    if (!text && files.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('receiverId', currentChatUser.id);
+
+    for (let file of files) {
+        formData.append('media', file);
+    }
+
+    try {
+        const response = await fetch('/api/messages/send/' + currentChatUser.id, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const message = await response.json();
+            addMessageToChat(message);
+            chatInput.value = '';
+            mediaInput.value = '';
+            mediaPreview.innerHTML = '';
         }
-        
-        if (!chats[currentUser.id]) {
-            chats[currentUser.id] = [];
-        }
-        
-        chats[currentUser.id].push(message);
-        localStorage.setItem('chats', JSON.stringify(chats));
-        
-        input.value = '';
-        mediaInput.value = '';
-        updateChatMessages();
-        updateChatsSection();
+    } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        alert('Erro ao enviar mensagem');
     }
 }
 
@@ -1457,122 +1449,214 @@ function updateMatchesChart() {
     });
 }
 
-// Função para abrir o chat com um usuário
+// Função para abrir o chat
 function openChat(user) {
     currentChatUser = user;
-    chatScreen.style.display = 'flex';
-    document.querySelector('.chat-user-name').textContent = user.name;
-    document.querySelector('.chat-user-photo').style.backgroundImage = `url(${user.photos[0]})`;
+    showScreen('chat-screen');
     
-    // Carregar mensagens
-    loadMessages();
+    // Atualiza informações do usuário no cabeçalho
+    const userPhoto = chatHeader.querySelector('.chat-user-photo');
+    const userName = chatHeader.querySelector('.chat-user-name');
+    const userStatus = chatHeader.querySelector('.chat-user-status');
     
-    // Esconder outras telas
-    document.querySelector('.main-screen').style.display = 'none';
-    document.querySelector('.matches-screen').style.display = 'none';
+    userPhoto.src = user.photo;
+    userName.textContent = user.name;
+    userStatus.textContent = 'Online';
+    
+    // Carrega mensagens
+    loadMessages(user.id);
 }
 
 // Função para carregar mensagens
-async function loadMessages() {
+async function loadMessages(userId) {
     try {
-        const response = await fetch(`/messages/chat/${currentChatUser._id}`);
+        const response = await fetch(`/api/messages/chat/${userId}`);
         const messages = await response.json();
         
         chatMessages.innerHTML = '';
-        messages.forEach(message => {
-            appendMessage(message);
-        });
+        messages.forEach(message => addMessageToChat(message));
         
+        // Rola para a última mensagem
         chatMessages.scrollTop = chatMessages.scrollHeight;
     } catch (error) {
         console.error('Erro ao carregar mensagens:', error);
     }
 }
 
-// Função para adicionar uma mensagem ao chat
-function appendMessage(message) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${message.sender === currentUser._id ? 'sent' : 'received'}`;
+// Função para adicionar mensagem ao chat
+function addMessageToChat(message) {
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 'received'}`;
     
-    if (message.media && message.media.length > 0) {
-        const media = message.media[0];
-        if (media.type.startsWith('image')) {
-            messageDiv.innerHTML = `<img src="${media.url}" alt="Imagem">`;
-        } else if (media.type.startsWith('video')) {
-            messageDiv.innerHTML = `<video controls src="${media.url}"></video>`;
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.textContent = message.content;
+    
+    const time = document.createElement('div');
+    time.className = 'message-time';
+    time.textContent = new Date(message.createdAt).toLocaleTimeString();
+    
+    messageElement.appendChild(content);
+    messageElement.appendChild(time);
+    
+    // Adiciona mídia se existir
+    if (message.media) {
+        const media = document.createElement('div');
+        media.className = 'message-media';
+        
+        if (message.mediaType.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = message.media;
+            media.appendChild(img);
+        } else if (message.mediaType.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.src = message.media;
+            video.controls = true;
+            media.appendChild(video);
         }
-    } else {
-        messageDiv.textContent = message.content;
+        
+        messageElement.appendChild(media);
     }
     
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Adiciona áudio se existir
+    if (message.audio) {
+        const audio = document.createElement('div');
+        audio.className = 'audio-message';
+        
+        const playButton = document.createElement('button');
+        playButton.className = 'play-button';
+        playButton.innerHTML = '<i class="fas fa-play"></i>';
+        
+        const audioElement = document.createElement('audio');
+        audioElement.src = message.audio;
+        
+        const duration = document.createElement('span');
+        duration.className = 'audio-duration';
+        duration.textContent = formatDuration(message.audioDuration);
+        
+        audio.appendChild(playButton);
+        audio.appendChild(audioElement);
+        audio.appendChild(duration);
+        
+        messageElement.appendChild(audio);
+    }
+    
+    chatMessages.appendChild(messageElement);
 }
 
 // Função para enviar mensagem
 async function sendMessage() {
-    const content = chatInput.value.trim();
-    if (!content && !mediaFile) return;
+    const input = chatInput;
+    const content = input.value.trim();
+    
+    if (!content && !mediaInput.files.length && !audioChunks.length) return;
     
     const formData = new FormData();
-    if (content) formData.append('content', content);
-    if (mediaFile) formData.append('media', mediaFile);
+    formData.append('content', content);
+    formData.append('receiverId', currentChatUser.id);
+    
+    // Adiciona arquivos de mídia
+    if (mediaInput.files.length) {
+        formData.append('media', mediaInput.files[0]);
+    }
+    
+    // Adiciona áudio
+    if (audioChunks.length) {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        formData.append('audio', audioBlob);
+    }
     
     try {
-        const response = await fetch(`/messages/send/${currentChatUser._id}`, {
+        const response = await fetch('/api/messages/send', {
             method: 'POST',
             body: formData
         });
         
-        if (response.ok) {
-            const message = await response.json();
-            appendMessage(message);
-            chatInput.value = '';
-            mediaFile = null;
-            mediaPreview.innerHTML = '';
-        }
+        const message = await response.json();
+        addMessageToChat(message);
+        
+        // Limpa inputs
+        input.value = '';
+        mediaInput.value = '';
+        mediaPreview.innerHTML = '';
+        audioChunks = [];
+        
+        // Rola para a última mensagem
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
     }
 }
 
-// Event Listeners
+// Event Listeners para o chat
 sendButton.addEventListener('click', sendMessage);
 chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
+    if (e.key === 'Enter') sendMessage();
+});
+
+mediaButton.addEventListener('click', () => mediaInput.click());
+mediaInput.addEventListener('change', () => {
+    const file = mediaInput.files[0];
+    if (!file) return;
+    
+    const preview = document.createElement('div');
+    preview.className = 'media-preview-item';
+    
+    const removeButton = document.createElement('button');
+    removeButton.className = 'remove-media';
+    removeButton.innerHTML = '×';
+    removeButton.onclick = () => preview.remove();
+    
+    if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+    } else if (file.type.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        preview.appendChild(video);
     }
+    
+    preview.appendChild(removeButton);
+    mediaPreview.appendChild(preview);
 });
 
-mediaButton.addEventListener('click', () => {
-    mediaInput.click();
-});
+// Configuração do gravador de áudio
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    audioButton.addEventListener('mousedown', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (e) => {
+                audioChunks.push(e.data);
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            audioButton.classList.add('recording');
+        } catch (error) {
+            console.error('Erro ao iniciar gravação:', error);
+        }
+    });
+    
+    audioButton.addEventListener('mouseup', () => {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            audioButton.classList.remove('recording');
+            
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+    });
+}
 
-mediaInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        mediaFile = file;
-        const reader = new FileReader();
-        
-        reader.onload = (e) => {
-            if (file.type.startsWith('image')) {
-                mediaPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            } else if (file.type.startsWith('video')) {
-                mediaPreview.innerHTML = `<video controls src="${e.target.result}"></video>`;
-            }
-        };
-        
-        reader.readAsDataURL(file);
-    }
-});
-
-backButton.addEventListener('click', () => {
-    chatScreen.style.display = 'none';
-    currentChatUser = null;
-    mediaFile = null;
-    mediaPreview.innerHTML = '';
-});
+// Função auxiliar para formatar duração do áudio
+function formatDuration(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
 
 // Registrar o service worker
 if ('serviceWorker' in navigator) {
@@ -1613,4 +1697,37 @@ installButton.addEventListener('click', async () => {
 window.addEventListener('appinstalled', () => {
     console.log('PWA foi instalado');
     installButton.style.display = 'none';
-}); 
+});
+
+// Função para adicionar mensagem de áudio ao chat
+function addAudioMessageToChat(message) {
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${message.sender === currentUser.id ? 'sent' : 'received'} audio-message`;
+    
+    const audioPlayer = document.createElement('div');
+    audioPlayer.className = 'audio-player';
+    
+    const playButton = document.createElement('button');
+    playButton.className = 'play-button';
+    playButton.innerHTML = '<i class="fas fa-play"></i>';
+    
+    const audio = document.createElement('audio');
+    audio.src = message.content;
+    audio.controls = true;
+    
+    audioPlayer.appendChild(playButton);
+    audioPlayer.appendChild(audio);
+    messageElement.appendChild(audioPlayer);
+    
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Atualizar a função addMessageToChat para incluir mensagens de áudio
+function addMessageToChat(message) {
+    if (message.type === 'audio') {
+        addAudioMessageToChat(message);
+    } else {
+        // ... existing code for other message types ...
+    }
+} 

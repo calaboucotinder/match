@@ -202,7 +202,17 @@
                     </div>
                     <div class="chat-input">
                         <input type="text" placeholder="Digite sua mensagem...">
-                        <button onclick="sendMessage()">Enviar</button>
+                        <button class="media-button">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button class="audio-button">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <input type="file" accept="image/*,video/*" style="display: none;">
+                        <div class="media-preview"></div>
                     </div>
                 </div>
             </div>
@@ -502,30 +512,35 @@
         <!-- Chat Screen -->
         <div class="chat-screen">
             <div class="chat-header">
-                <button class="back-button">←</button>
+                <button class="back-button"><i class="fas fa-arrow-left"></i></button>
                 <div class="chat-user-info">
-                    <div class="chat-user-photo"></div>
-                    <div class="chat-user-name"></div>
+                    <img src="" alt="Foto do usuário" class="chat-user-photo">
+                    <div class="chat-user-details">
+                        <h3 class="chat-user-name"></h3>
+                        <span class="chat-user-status"></span>
+                    </div>
                 </div>
             </div>
-            
-            <div class="chat-messages">
-                <div class="typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
+            <div class="chat-messages"></div>
+            <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-            
-            <div class="chat-input-area">
-                <div class="chat-input-container">
-                    <button class="media-button">📎</button>
-                    <textarea class="chat-message-input" placeholder="Digite sua mensagem..."></textarea>
-                    <button class="send-button">➤</button>
-                </div>
-                <input type="file" class="media-input" accept="image/*,video/*" style="display: none;">
-                <div class="media-preview"></div>
+            <div class="chat-input">
+                <button type="button" class="media-button" title="Anexar mídia">
+                    <i class="fas fa-image"></i>
+                </button>
+                <input type="file" class="media-input" accept="image/*,video/*" multiple hidden>
+                <button type="button" class="audio-button" data-action="audio" title="Gravar áudio">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <input type="text" placeholder="Digite sua mensagem...">
+                <button type="submit" title="Enviar mensagem">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
+            <div class="media-preview"></div>
         </div>
     </div>
     <script src="app.js"></script>
