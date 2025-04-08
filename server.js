@@ -9,7 +9,6 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
 // Conectar ao MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/calabouco-tinder', {
@@ -26,21 +25,19 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/calabouco
     // Não encerra o servidor, apenas loga o erro
 });
 
-// Rotas
+// Rotas da API
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/matches', require('./routes/matches'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/photos', require('./routes/photos'));
+app.use('/api/matches', require('./routes/matches'));
 
-// Servir arquivos estáticos
-const publicPath = path.join(__dirname, 'public');
-console.log('Caminho para arquivos estáticos:', publicPath);
-app.use(express.static(publicPath));
+// Servir arquivos estáticos da raiz
+app.use(express.static(__dirname));
 
 // Rota principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Tratamento de erros
