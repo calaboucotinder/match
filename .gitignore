@@ -1,6 +1,9 @@
 # Dependências
 node_modules/
 package-lock.json
+npm-debug.log
+yarn-debug.log
+yarn-error.log
 
 # Ambiente
 .env
@@ -10,12 +13,10 @@ package-lock.json
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Uploads
-public/uploads/
+public/uploads/*
+!public/uploads/.gitkeep
 
 # Sistema
 .DS_Store

@@ -1,7 +1,7 @@
 {
   "name": "calabouco-tinder",
   "version": "1.0.0",
-  "description": "Um aplicativo de encontros inspirado no Tinder",
+  "description": "Aplicativo de encontros",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

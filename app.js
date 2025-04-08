@@ -203,37 +203,18 @@ async function register() {
         registerButton.disabled = true;
         registerButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
         
-        const name = document.getElementById('reg-name').value;
-        const email = document.getElementById('reg-email').value;
-        const age = document.getElementById('reg-age').value;
-        const gender = document.getElementById('reg-gender').value;
-        const pronoun = document.getElementById('reg-pronoun').value;
-        const orientation = document.getElementById('reg-orientation').value;
-        const bio = document.getElementById('reg-bio').value;
-        const password = document.getElementById('reg-password').value;
-        const confirmPassword = document.getElementById('reg-confirm-password').value;
-        const photoInput = document.getElementById('reg-photo');
-
-        // Validações
-        if (!name || !email || !age || !password || !confirmPassword) {
-            throw new Error('Por favor, preencha todos os campos obrigatórios');
-        }
-
-        if (password !== confirmPassword) {
-            throw new Error('As senhas não coincidem');
-        }
-
         const formData = new FormData();
-        formData.append('name', name);
-        formData.append('email', email);
-        formData.append('age', age);
-        formData.append('gender', gender);
-        formData.append('pronoun', pronoun);
-        formData.append('orientation', orientation);
-        formData.append('bio', bio);
-        formData.append('password', password);
+        formData.append('name', document.getElementById('reg-name').value);
+        formData.append('email', document.getElementById('reg-email').value);
+        formData.append('age', document.getElementById('reg-age').value);
+        formData.append('gender', document.getElementById('reg-gender').value);
+        formData.append('pronoun', document.getElementById('reg-pronoun').value);
+        formData.append('orientation', document.getElementById('reg-orientation').value);
+        formData.append('bio', document.getElementById('reg-bio').value);
+        formData.append('password', document.getElementById('reg-password').value);
         
-        if (photoInput.files.length > 0) {
+        const photoInput = document.getElementById('reg-photo');
+        if (photoInput.files && photoInput.files[0]) {
             formData.append('photo', photoInput.files[0]);
         }
 
@@ -245,6 +226,7 @@ async function register() {
         if (response.ok) {
             const data = await response.json();
             localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
             
             // Mostra mensagem de sucesso
             registerButton.innerHTML = '<i class="fas fa-check"></i> Conta criada!';
@@ -257,7 +239,7 @@ async function register() {
             }, 1000);
         } else {
             const error = await response.json();
-            throw new Error(error.message || 'Erro ao criar conta');
+            throw new Error(error.error || 'Erro ao criar conta');
         }
     } catch (error) {
         console.error('Erro:', error);
@@ -301,6 +283,7 @@ async function login() {
         if (response.ok) {
             const data = await response.json();
             localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
             
             // Mostra mensagem de sucesso
             loginButton.innerHTML = '<i class="fas fa-check"></i> Entrando...';
@@ -313,7 +296,7 @@ async function login() {
             }, 1000);
         } else {
             const error = await response.json();
-            throw new Error(error.message || 'Email ou senha incorretos');
+            throw new Error(error.error || 'Email ou senha incorretos');
         }
     } catch (error) {
         console.error('Erro:', error);
