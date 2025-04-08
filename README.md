@@ -1,6 +1,42 @@
-# Calabouço Tinder
+# 🧛‍♂️ Calabouço Dating
 
-Um aplicativo de encontros inspirado no Tinder, com recursos adicionais de privacidade e segurança.
+Um aplicativo de encontros com tema gótico/vampiro.
+
+## 🚀 Funcionalidades
+
+- Sistema de login e registro
+- Perfil personalizado com fotos
+- Sistema de matches
+- Chat em tempo real
+- Suporte a mídia (fotos e vídeos)
+- Interface responsiva
+- Modo PWA (Progressive Web App)
+
+## 🛠️ Tecnologias
+
+- Frontend: HTML, CSS, JavaScript
+- Backend: Node.js, Express
+- Banco de Dados: MongoDB
+- Autenticação: JWT
+- Upload de arquivos: Multer
+
+## 📱 Como usar
+
+1. Acesse o site
+2. Crie uma conta ou faça login
+3. Complete seu perfil
+4. Comece a encontrar matches!
+
+## 🔒 Segurança
+
+- Senhas criptografadas
+- Autenticação JWT
+- Proteção contra CSRF
+- Validação de dados
+
+## 🌐 Deploy
+
+O aplicativo está disponível em: [https://calabouco-tinder.onrender.com](https://calabouco-tinder.onrender.com)
 
 ## Requisitos
 
