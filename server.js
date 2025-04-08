@@ -34,7 +34,9 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/photos', require('./routes/photos'));
 
 // Servir arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
+const publicPath = path.join(__dirname, 'public');
+console.log('Caminho para arquivos estáticos:', publicPath);
+app.use(express.static(publicPath));
 
 // Rota principal
 app.get('/', (req, res) => {
