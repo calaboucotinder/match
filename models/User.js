@@ -59,6 +59,12 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
+    tokens: [{
+        token: {
+            type: String,
+            required: true
+        }
+    }],
     profileViews: {
         type: Number,
         default: 0
@@ -83,8 +89,12 @@ userSchema.pre('save', async function(next) {
 });
 
 // Método para comparar senhas
-userSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+userSchema.methods.comparePassword = async function(password) {
+    try {
+        return await bcrypt.compare(password, this.password);
+    } catch (error) {
+        throw new Error(error);
+    }
 };
 
 module.exports = mongoose.model('User', userSchema); 

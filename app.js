@@ -173,6 +173,7 @@ function showLogin() {
 // Função de registro
 async function register() {
     const name = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
     const age = document.getElementById('reg-age').value;
     const gender = document.getElementById('reg-gender').value;
     const pronoun = document.getElementById('reg-pronoun').value;
@@ -183,7 +184,7 @@ async function register() {
     const photoInput = document.getElementById('reg-photo');
 
     // Validações
-    if (!name || !age || !password || !confirmPassword) {
+    if (!name || !email || !age || !password || !confirmPassword) {
         alert('Por favor, preencha todos os campos obrigatórios');
         return;
     }
@@ -195,6 +196,7 @@ async function register() {
 
     const formData = new FormData();
     formData.append('name', name);
+    formData.append('email', email);
     formData.append('age', age);
     formData.append('gender', gender);
     formData.append('pronoun', pronoun);
@@ -207,7 +209,7 @@ async function register() {
     }
 
     try {
-        const response = await fetch('/auth/register', {
+        const response = await fetch('/api/auth/register', {
             method: 'POST',
             body: formData
         });
@@ -229,21 +231,21 @@ async function register() {
 
 // Função de login
 async function login() {
-    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    if (!username || !password) {
+    if (!email || !password) {
         alert('Por favor, preencha todos os campos');
         return;
     }
 
     try {
-        const response = await fetch('/auth/login', {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ email, password })
         });
 
         if (response.ok) {
@@ -253,7 +255,7 @@ async function login() {
             loadUserProfile();
         } else {
             const error = await response.json();
-            alert(error.message || 'Usuário ou senha incorretos');
+            alert(error.message || 'Email ou senha incorretos');
         }
     } catch (error) {
         console.error('Erro:', error);
