@@ -56,38 +56,43 @@
             </nav>
 
             <div id="swipe-section" class="section active">
-                <div class="card-container">
-                    <div class="card">
-                        <div class="photo-gallery">
-                            <div class="photo-slider">
-                                <div class="card-photo"></div>
+                <div class="swipe-card">
+                    <div class="swipe-photo" id="current-photo" style="background-image: url('path/to/default.jpg');">
+                        <div class="swipe-info">
+                            <h2 class="name">Nome do Usuário</h2>
+                            <p class="age">25 anos</p>
+                            <p class="pronoun">Ele/Dele</p>
+                            <p class="orientation">Heterossexual</p>
+                            <div class="interests-tags">
+                                <!-- Tags serão inseridas via JavaScript -->
                             </div>
-                            <div class="photo-counter">1/5</div>
-                            <div class="photo-preview"></div>
-                            <div class="photo-dots"></div>
-                            <button class="prev-photo" onclick="prevPhoto()"><i class="fas fa-chevron-left"></i></button>
-                            <button class="next-photo" onclick="nextPhoto()"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="card-info">
-                            <h2 class="name"></h2>
-                            <p class="age"></p>
-                            <p class="pronoun"></p>
-                            <p class="orientation"></p>
-                            <div class="interests-tags"></div>
-                            <p class="bio"></p>
-                            <p class="additional-info"></p>
                         </div>
                     </div>
                 </div>
-                <div class="buttons">
-                    <button class="dislike">❌</button>
-                    <button class="like">❤️</button>
+                <div class="swipe-actions">
+                    <button class="swipe-button dislike" onclick="dislike()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button class="swipe-button like" onclick="like()">
+                        <i class="fas fa-heart"></i>
+                    </button>
                 </div>
             </div>
 
             <div id="matches-section" class="section">
                 <h2>Seus Matches</h2>
-                <div class="matches-grid"></div>
+                <div class="matches-grid">
+                    <!-- Exemplo de match card -->
+                    <div class="match-card" onclick="openChat('user-id')">
+                        <div class="match-photo" style="background-image: url('path/to/photo.jpg');">
+                            <div class="match-info">
+                                <h3>Nome</h3>
+                                <p>25 anos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Mais cards serão inseridos via JavaScript -->
+                </div>
             </div>
 
             <div id="chats-section" class="section">
@@ -201,23 +206,31 @@
 
         <div id="edit-profile-screen" class="screen">
             <div class="edit-profile-header">
-                <button class="back-btn" onclick="backToProfile()">←</button>
+                <button class="back-btn" onclick="backToProfile()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
                 <h2>Editar Perfil</h2>
             </div>
             <div class="edit-profile-form">
                 <div class="profile-photo-upload">
-                    <div class="profile-photo"></div>
-                    <label for="edit-photo" class="upload-btn">Alterar Foto</label>
+                    <div class="profile-photo" id="preview-photo" style="background-image: url('path/to/profile.jpg');"></div>
+                    <label for="edit-photo" class="upload-btn">
+                        <i class="fas fa-camera"></i>
+                        Alterar Foto
+                    </label>
                     <input type="file" id="edit-photo" accept="image/*" style="display: none;">
                 </div>
+                
                 <div class="form-group">
                     <label for="edit-name">Nome</label>
                     <input type="text" id="edit-name" placeholder="Seu nome">
                 </div>
+                
                 <div class="form-group">
                     <label for="edit-age">Idade</label>
                     <input type="number" id="edit-age" placeholder="Sua idade">
                 </div>
+                
                 <div class="form-group">
                     <label for="edit-gender">Identidade de Gênero</label>
                     <select id="edit-gender">
@@ -231,6 +244,7 @@
                         <option value="outro-genero">Outro</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="edit-pronoun">Pronome</label>
                     <select id="edit-pronoun">
@@ -238,11 +252,10 @@
                         <option value="ela/dela">ela/dela</option>
                         <option value="elu/delu">elu/delu</option>
                         <option value="ile/dile">ile/dile</option>
-                        <option value="ela/dela">ela/dela</option>
-                        <option value="ile/dile">ile/dile</option>
                         <option value="outro">outro</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="edit-orientation">Orientação Sexual</label>
                     <select id="edit-orientation">
@@ -251,40 +264,18 @@
                         <option value="bissexual">Bissexual</option>
                         <option value="pansexual">Pansexual</option>
                         <option value="assexual">Assexual</option>
-                        <option value="demissexual">Demissexual</option>
-                        <option value="fluid">Fluido</option>
-                        <option value="queer">Queer</option>
-                        <option value="arromantico">Arromântico</option>
-                        <option value="poliamoroso">Poliamoroso</option>
                         <option value="outro">Outro</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="edit-relationship">Status de Relacionamento</label>
-                    <select id="edit-relationship">
-                        <option value="solteiro">Solteiro(a)</option>
-                        <option value="solteiro-nao-mono">Solteiro(a) Não Monogâmico(a)</option>
-                        <option value="casado">Casado(a)</option>
-                        <option value="casado-nao-mono">Casado(a) Não Monogâmico(a)</option>
-                        <option value="relacionamento-aberto">Em Relacionamento Aberto</option>
-                        <option value="unicornio">Unicórnio</option>
-                        <option value="poliamoroso">Poliamoroso(a)</option>
-                        <option value="outro-relacionamento">Outro</option>
-                    </select>
-                </div>
+                
                 <div class="form-group">
                     <label for="edit-bio">Bio</label>
-                    <textarea id="edit-bio" placeholder="Conte um pouco sobre você"></textarea>
+                    <textarea id="edit-bio" placeholder="Fale um pouco sobre você..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="edit-additional">Informações Adicionais</label>
-                    <textarea id="edit-additional" placeholder="Adicione mais informações sobre você"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="edit-password">Nova Senha (opcional)</label>
-                    <input type="password" id="edit-password" placeholder="Digite sua nova senha">
-                </div>
-                <button class="save-btn" onclick="saveProfile()">Salvar Alterações</button>
+                
+                <button class="save-btn" onclick="saveProfile()">
+                    Salvar Alterações
+                </button>
             </div>
         </div>
 
