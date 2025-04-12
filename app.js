@@ -1,3 +1,29 @@
+console.log('app.js carregado com sucesso!');
+
+// Adiciona evento de carregamento da página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado completamente');
+    
+    // Verifica se os elementos existem
+    const loginScreen = document.getElementById('login-screen');
+    const registerScreen = document.getElementById('register-screen');
+    const registerLink = document.querySelector('.register-link a');
+    
+    console.log('Elementos encontrados:');
+    console.log('Login screen:', loginScreen);
+    console.log('Register screen:', registerScreen);
+    console.log('Register link:', registerLink);
+    
+    // Adiciona evento de clique ao link de registro
+    if (registerLink) {
+        registerLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Link de registro clicado');
+            showRegister();
+        });
+    }
+});
+
 // Dados mockados para teste
 const mockUsers = [
     {
@@ -132,6 +158,7 @@ function handleTouchEnd() {
 
 // Funções de navegação
 function showScreen(screenId) {
+    console.log('Mostrando tela:', screenId);
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
@@ -165,150 +192,106 @@ function showSection(sectionName) {
     }
 }
 
-function showRegister() {
-    const loginScreen = document.getElementById('login-screen');
-    const registerScreen = document.getElementById('register-screen');
-    
-    loginScreen.classList.remove('active');
-    registerScreen.classList.add('active');
-    
-    // Limpa os campos do formulário de login
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-}
-
 function showLogin() {
-    const loginScreen = document.getElementById('login-screen');
-    const registerScreen = document.getElementById('register-screen');
-    
-    registerScreen.classList.remove('active');
-    loginScreen.classList.add('active');
-    
-    // Limpa os campos do formulário de registro
-    document.getElementById('reg-name').value = '';
-    document.getElementById('reg-email').value = '';
-    document.getElementById('reg-age').value = '';
-    document.getElementById('reg-password').value = '';
-    document.getElementById('reg-confirm-password').value = '';
-    document.getElementById('reg-photo').value = '';
+    console.log('Mostrando tela de login');
+    showScreen('login-screen');
 }
 
-// Função de registro
-async function register() {
-    const registerButton = document.querySelector('.register-form button');
-    const originalText = registerButton.innerHTML;
-    
+function showRegister() {
+    console.log('Mostrando tela de registro');
+    showScreen('register-screen');
+}
+
+async function login() {
+    console.log('Tentando fazer login...');
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        alert('Por favor, preencha todos os campos');
+        return;
+    }
+
     try {
-        // Desabilita o botão e mostra loading
-        registerButton.disabled = true;
-        registerButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
-        
-        const formData = new FormData();
-        formData.append('name', document.getElementById('reg-name').value);
-        formData.append('email', document.getElementById('reg-email').value);
-        formData.append('age', document.getElementById('reg-age').value);
-        formData.append('gender', document.getElementById('reg-gender').value);
-        formData.append('pronoun', document.getElementById('reg-pronoun').value);
-        formData.append('orientation', document.getElementById('reg-orientation').value);
-        formData.append('bio', document.getElementById('reg-bio').value);
-        formData.append('password', document.getElementById('reg-password').value);
-        
-        const photoInput = document.getElementById('reg-photo');
-        if (photoInput.files && photoInput.files[0]) {
-            formData.append('photo', photoInput.files[0]);
+        // Para teste, vamos usar localStorage
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.email === email && u.password === password);
+
+        if (!user) {
+            throw new Error('Email ou senha incorretos');
         }
 
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            body: formData
-        });
+        // Login bem sucedido
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        currentUser = user;
+        showScreen('main-screen');
+        showSection('swipe');
 
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            
-            // Mostra mensagem de sucesso
-            registerButton.innerHTML = '<i class="fas fa-check"></i> Conta criada!';
-            registerButton.style.backgroundColor = 'var(--success-color)';
-            
-            // Redireciona após 1 segundo
-            setTimeout(() => {
-                showScreen('main-screen');
-                loadUserProfile();
-            }, 1000);
-        } else {
-            const error = await response.json();
-            throw new Error(error.error || 'Erro ao criar conta');
-        }
     } catch (error) {
-        console.error('Erro:', error);
-        registerButton.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + error.message;
-        registerButton.style.backgroundColor = 'var(--error-color)';
-        
-        // Restaura o botão após 3 segundos
-        setTimeout(() => {
-            registerButton.disabled = false;
-            registerButton.innerHTML = originalText;
-            registerButton.style.backgroundColor = '';
-        }, 3000);
+        console.error('Erro no login:', error);
+        alert(error.message || 'Erro ao fazer login. Tente novamente.');
     }
 }
 
-// Função de login
-async function login() {
-    const loginButton = document.querySelector('.login-form button');
-    const originalText = loginButton.innerHTML;
+async function register() {
+    console.log('Tentando registrar usuário...');
     
+    // Coleta todos os dados do formulário
+    const name = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
+    const age = document.getElementById('reg-age').value;
+    const gender = document.getElementById('reg-gender').value;
+    const pronoun = document.getElementById('reg-pronoun').value;
+    const orientation = document.getElementById('reg-orientation').value;
+    const bio = document.getElementById('reg-bio').value;
+    const password = document.getElementById('reg-password').value;
+    const confirmPassword = document.getElementById('reg-confirm-password').value;
+    const photoInput = document.getElementById('reg-photo');
+
+    // Validações básicas
+    if (!name || !email || !age || !password || !confirmPassword) {
+        alert('Por favor, preencha todos os campos obrigatórios');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert('As senhas não coincidem');
+        return;
+    }
+
     try {
-        // Desabilita o botão e mostra loading
-        loginButton.disabled = true;
-        loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+        // Para teste, vamos usar localStorage
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
         
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        if (!email || !password) {
-            throw new Error('Por favor, preencha todos os campos');
+        // Verifica se o email já existe
+        if (users.some(u => u.email === email)) {
+            throw new Error('Este email já está cadastrado');
         }
 
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
+        // Cria novo usuário
+        const newUser = {
+            id: Date.now(),
+            name,
+            email,
+            age,
+            gender,
+            pronoun,
+            orientation,
+            bio,
+            password,
+            photo: photoInput.files[0] ? URL.createObjectURL(photoInput.files[0]) : null
+        };
 
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            
-            // Mostra mensagem de sucesso
-            loginButton.innerHTML = '<i class="fas fa-check"></i> Entrando...';
-            loginButton.style.backgroundColor = 'var(--success-color)';
-            
-            // Redireciona após 1 segundo
-            setTimeout(() => {
-                showScreen('main-screen');
-                loadUserProfile();
-            }, 1000);
-        } else {
-            const error = await response.json();
-            throw new Error(error.error || 'Email ou senha incorretos');
-        }
+        // Adiciona ao array de usuários
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        alert('Registro realizado com sucesso! Faça login para continuar.');
+        showLogin();
+
     } catch (error) {
-        console.error('Erro:', error);
-        loginButton.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + error.message;
-        loginButton.style.backgroundColor = 'var(--error-color)';
-        
-        // Restaura o botão após 3 segundos
-        setTimeout(() => {
-            loginButton.disabled = false;
-            loginButton.innerHTML = originalText;
-            loginButton.style.backgroundColor = '';
-        }, 3000);
+        console.error('Erro no registro:', error);
+        alert(error.message || 'Erro ao registrar. Tente novamente.');
     }
 }
 

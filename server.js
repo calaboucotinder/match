@@ -42,7 +42,14 @@ app.use(express.static(__dirname));
 
 // Rota principal
 app.get('/', (req, res) => {
+    console.log('Servindo index.html');
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Rota para app.js
+app.get('/app.js', (req, res) => {
+    console.log('Servindo app.js');
+    res.sendFile(path.join(__dirname, 'app.js'));
 });
 
 // Rotas de autenticação

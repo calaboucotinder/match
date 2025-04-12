@@ -19,6 +19,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Calabouço">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="app.js" defer></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -44,7 +45,7 @@
                     <i class="fas fa-sign-in-alt"></i>
                     Entrar no Calabouço
                 </button>
-                <p class="register-link">Não tem conta? <a href="javascript:void(0)" onclick="showRegister()">Registre-se</a></p>
+                <p class="register-link">Não tem conta? <a href="#" onclick="showRegister(); return false;">Registre-se</a></p>
             </div>
         </div>
 
@@ -546,6 +547,5 @@
             <div class="media-preview"></div>
         </div>
     </div>
-    <script src="app.js"></script>
 </body>
 </html> 
